@@ -37,7 +37,7 @@
       });
 
       function createNewPost(title, content) {
-        axios.post("/post", { title, content })
+        axios.post("/posts", { title, content })
           .then(function (response) {
             console.log(response);
             loadPosts();
@@ -49,7 +49,7 @@
       }
 
       function updatePost(id, title, content) {
-        axios.put("/post/" + id, { title, content })
+        axios.put("/posts/" + id, { title, content })
           .then(function (response) {
             console.log(response);
             loadPosts();
@@ -71,7 +71,7 @@
 
 
       function loadPosts() {
-        axios.get("/post")
+        axios.get("/posts")
           .then(function (response) {
             const posts = response.data;
             const postsList = document.getElementById("postsList");
@@ -95,7 +95,7 @@
 
       function deletePost(id) {
         if (confirm("Are you sure you want to delete this post?")) {
-          axios.delete("/post/" + id)
+          axios.delete("/posts/" + id)
             .then(function (response) {
               console.log(response);
               loadPosts();
@@ -107,7 +107,7 @@
       }
 
       function loadPostForEditing(id) {
-        axios.get("/post/" + id)
+        axios.get("/posts/" + id)
           .then(function (response) {
             const post = response.data;
             currentEditingId = post.id;

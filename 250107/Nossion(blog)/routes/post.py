@@ -4,7 +4,7 @@ from flask.views import MethodView
 from db import db
 from models import Post
 
-post_blp = Blueprint("Posts", "posts", description="Operations on posts", url_prefix="/post")
+post_blp = Blueprint("Posts", "posts", description="Operations on posts", url_prefix="/posts")
 
 # API LIST
 # 전체 게시글 불러오기 GET
