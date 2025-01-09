@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram API</title>
+</head>
+<body>
+    <h1>Instagram API</h1>
+
+    <!-- Fetch Users -->
+    <h2>Fetch Users</h2>
+    <button id="fetch-users">Fetch All Users</button>
+    <div id="users-response"></div>
+
+    <!-- Create User -->
+    <h2>Create User</h2>
+    <form id="create-user-form">
+        <input type="text" id="create-username" placeholder="Enter username" required>
+        <button type="submit">Create User</button>
+    </form>
+    <div id="create-user-response"></div>
+
+    <!-- Add Post to User -->
+    <h2>Add Post to User</h2>
+    <form id="add-post-form">
+        <input type="text" id="post-username" placeholder="Enter username" required>
+        <input type="text" id="post-title" placeholder="Enter post title" required>
+        <button type="submit">Add Post</button>
+    </form>
+    <div id="add-post-response"></div>
+
+    <!-- Like Post -->
+    <h2>Like Post</h2>
+    <form id="like-post-form">
+        <input type="text" id="like-username" placeholder="Enter username" required>
+        <input type="text" id="like-title" placeholder="Enter post title" required>
+        <button type="submit">Like Post</button>
+    </form>
+    <div id="like-post-response"></div>   
+
+    <!-- Delete User -->
+    <h2>Delete User</h2>
+    <form id="delete-user-form">
+        <input type="text" id="delete-username" placeholder="Enter username" required>
+        <button type="submit">Delete User</button>
+    </form>
+    <div id="delete-user-response"></div> 
+
+    <script>
+        // Fetch All Users
+        document.getElementById("fetch-users").addEventListener("click", () => {
+            fetch("/users")
+                .then(response => response.json())
+                .then(data => {
+                    const usersResponse = document.getElementById("users-response");
+                    usersResponse.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                })
+                .catch(error => {
+                    console.error("Error fetching users:", error);
+                });
+        });
+
+        // Create User
+        document.getElementById("create-user-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const username = document.getElementById("create-username").value;
+
+            fetch("/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const createUserResponse = document.getElementById("create-user-response");
+                    createUserResponse.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    document.getElementById("create-user-form").reset();
+                })
+                .catch(error => {
+                    console.error("Error creating user:", error);
+                });
+        });
+
+        // Add Post to User
+        document.getElementById("add-post-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const username = document.getElementById("post-username").value;
+            const title = document.getElementById("post-title").value;
+
+            fetch(`/users/post/${username}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ title, likes: 0 }) // Likes 초기값은 0으로 설정
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const addPostResponse = document.getElementById("add-post-response");
+                    addPostResponse.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    document.getElementById("add-post-form").reset();
+                })
+                .catch(error => {
+                    console.error("Error adding post:", error);
+                });
+        });
+
+        // Delete User
+        document.getElementById("delete-user-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const username = document.getElementById("delete-username").value;
+
+            fetch(`/users/${username}`, {
+                method: "DELETE"
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const deleteUserResponse = document.getElementById("delete-user-response");
+                    deleteUserResponse.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    document.getElementById("delete-user-form").reset();
+                })
+                .catch(error => {
+                    console.error("Error deleting user:", error);
+                });
+        });
+
+        // Like Post
+        document.getElementById("like-post-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const username = document.getElementById("like-username").value;
+            const title = document.getElementById("like-title").value;
+
+            fetch(`/users/post/like/${username}/${title}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const likePostResponse = document.getElementById("like-post-response");
+                    likePostResponse.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    document.getElementById("like-post-form").reset();
+                })
+                .catch(error => {
+                    console.error("Error liking post:", error);
+                });
+        });
+    </script>
+</body>
+</html>
