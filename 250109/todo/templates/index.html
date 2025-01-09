@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Todo App</h1>
+
+        <!-- Login Form -->
+        <div class="form-group">
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Username" required>
+                
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Password" required>
+                
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <!-- Create Todo Form -->
+        <div class="form-group">
+            <h2>Create Todo</h2>
+            <form id="create-todo-form" style="display:none;">
+                <input type="text" id="todo-title" placeholder="Todo Title" required>
+                <button type="submit">Create Todo</button>
+            </form>
+        </div>
+
+        <!-- Todo List -->
+        <div class="todo-list" style="display:none;">
+            <h2>Your Todo List</h2>
+            <div id="todos"></div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const createTodoForm = document.getElementById('create-todo-form');
+        const todoListDiv = document.querySelector('.todo-list');
+        const todosDiv = document.getElementById('todos');
+        let authToken = '';
+
+        // Handle Login
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (data.access_token) {
+                authToken = data.access_token;
+                loginForm.style.display = 'none';
+                createTodoForm.style.display = 'block';
+                todoListDiv.style.display = 'block';
+                fetchTodos();
+            } else {
+                alert('Login failed!');
+            }
+        });
+
+        // Handle Create Todo
+        createTodoForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const title = document.getElementById('todo-title').value;
+
+            const response = await fetch('/todo/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                },
+                body: JSON.stringify({ title }),
+            });
+
+            const data = await response.json();
+
+            if (data.msg === 'Todo created') {
+                fetchTodos();
+                document.getElementById('todo-title').value = '';
+            }
+        });
+
+        // Fetch Todos
+        async function fetchTodos() {
+            const response = await fetch('/todo/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                },
+            });
+
+            const todos = await response.json();
+            todosDiv.innerHTML = '';
+
+            todos.forEach(todo => {
+                const todoItem = document.createElement('div');
+                todoItem.classList.add('todo-item');
+                
+                // Display completed status as "Completed : True" or "Completed : False"
+                const statusText = todo.completed ? 'Completed : True' : 'Completed : False';
+
+                todoItem.innerHTML = `
+                    <span>${todo.title}</span>
+                    <span class="todo-status">${statusText}</span>
+                    <div class="todo-actions">
+                        <button class="complete-btn" onclick="toggleComplete(${todo.id})">Complete</button>
+                        <button class="undo-btn" onclick="undoComplete(${todo.id})">Undo</button>
+                        <button onclick="deleteTodo(${todo.id})">Delete</button>
+                    </div>
+                `;
+                todosDiv.appendChild(todoItem);
+            });
+        }
+
+        // Toggle Complete
+        async function toggleComplete(todoId) {
+            const response = await fetch(`/todo/${todoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                },
+                body: JSON.stringify({ completed: true }),
+            });
+
+            if (response.ok) {
+                fetchTodos();
+            }
+        }
+
+        // Undo Complete
+        async function undoComplete(todoId) {
+            const response = await fetch(`/todo/${todoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                },
+                body: JSON.stringify({ completed: false }),
+            });
+
+            if (response.ok) {
+                fetchTodos();
+            }
+        }
+
+        // Delete Todo
+        async function deleteTodo(todoId) {
+            const response = await fetch(`/todo/${todoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                },
+            });
+
+            if (response.ok) {
+                fetchTodos();
+            }
+        }
+    </script>
+</body>
+</html>
